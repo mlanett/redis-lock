@@ -1,6 +1,7 @@
 # Redis::Lock
 
-TODO: Write a gem description
+This gem implements a pessimistic lock using Redis.
+It correctly handles timeouts and vanishing lock owners (such as machine failures)
 
 ## Installation
 
