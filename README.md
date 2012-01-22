@@ -19,7 +19,11 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+This gem adds lock() and unlock() to Redis instances.
+lock() takes a block and is safer than using lock() and unlock() separately.
+lock() takes a key and optionally a timeout (otherwise defaulting to 1 second).
+
+redis.lock("test") { do_something }
 
 ## Contributing
 
