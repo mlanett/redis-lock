@@ -39,6 +39,17 @@ lock() takes a key and lifetime and optionally a timeout (otherwise defaulting t
 
 redis.lock("test") { do_something }
 
+## Problems
+
+Why do other gems get this wrong?
+
+You need to be able to handle race conditions while acquiring the lock.
+You need to be able to handle the owner of the lock failing to release it.
+You need to be able to detect stale locks.
+You need to handle race conditions while cleaning the stale lock and acquiring a new one.
+The code which cleans the stale lock may not be able to assume it gets the new one.
+The code which cleans the stale lock must not interfere with a different owner acquiring the lock.
+
 ## Contributing
 
 1. Fork it
