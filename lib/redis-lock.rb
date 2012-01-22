@@ -4,6 +4,10 @@ require "redis-lock/version"
 class Redis
 
   class Lock
+
+    class LockNotAcquired < StandardError
+    end
+
     # @param redis is a Redis instance
     # @param key is a unique string identifying the object to lock, e.g. "user-1"
     def initialize( redis, key )
