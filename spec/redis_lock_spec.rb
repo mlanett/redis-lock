@@ -26,4 +26,9 @@ describe Redis::Lock, redis: true do
     redis.get("two").should eq("dos")
   end
 
+  it "can acquire a lock" do
+    a = Redis::Lock.new( redis, "test" )
+    a.successfully_locked_key?.should be_true
+  end
+
 end
