@@ -31,4 +31,6 @@ describe Redis::Lock, redis: true do
     a.successfully_locked_key?.should be_true
   end
 
+  it "works if you call Lock1.lock and Lock2.lock with the same owner"
+
 end
