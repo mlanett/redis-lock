@@ -20,4 +20,10 @@ describe Redis::Lock, redis: true do
     @it.with_timeout(1) { results.shift }.should be_true
   end
 
+  it "can use msetnx" do
+    redis.msetnx "one", "uno", "two", "dos"
+    redis.get("one").should eq("uno")
+    redis.get("two").should eq("dos")
+  end
+
 end
