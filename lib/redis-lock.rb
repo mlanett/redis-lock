@@ -1,6 +1,7 @@
+require "redis"
 require "redis-lock/version"
 
-module Redis
+class Redis
   module Lock
     # Your code goes here...
   end

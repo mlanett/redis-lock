@@ -14,4 +14,6 @@ Gem::Specification.new do |gem|
   gem.name          = "mlanett-redis-lock"
   gem.require_paths = ["lib"]
   gem.version       = Redis::Lock::VERSION
+
+  gem.add_dependency "redis"
 end
