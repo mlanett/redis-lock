@@ -49,10 +49,15 @@ class Redis
       # this looks inelegant compared to while Time.now < expire, but does not oversleep
       loop do
         return true if block.call
-        return false if Time.now + sleepy > expire
+        log "Timeout" and return false if Time.now + sleepy > expire
         sleep(sleepy)
         sleepy *= 2
       end
+    end
+
+    def log( *messages )
+      # STDERR.puts "[#{object_id}] #{messages.join(' ')}"
+      true
     end
 
   end # Lock
