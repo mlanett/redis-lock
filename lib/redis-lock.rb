@@ -27,12 +27,30 @@ class Redis
     end
 
     def acquire_lock( timeout )
+      with_timeout(timeout) do
         true
+      end
     end
 
     def release_lock
       true
     end
+
+    # Calls block until it returns true or times out. Uses exponential backoff.
+    # @param block should return true if successful, false otherwise
+    # @returns true if successful, false otherwise
+    def with_timeout( timeout, &block )
+      expire = Time.now + timeout.to_f
+      sleepy = 0.125
+      # this looks inelegant compared to while Time.now < expire, but does not oversleep
+      loop do
+        return true if block.call
+        return false if Time.now + sleepy > expire
+        sleep(sleepy)
+        sleepy *= 2
+      end
+    end
+
   end # Lock
 
   # Convenience methods
