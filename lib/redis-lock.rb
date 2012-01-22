@@ -8,11 +8,14 @@ class Redis
     class LockNotAcquired < StandardError
     end
 
+    attr :life        # how long we expect to keep this lock locked
     # @param redis is a Redis instance
     # @param key is a unique string identifying the object to lock, e.g. "user-1"
     def initialize( redis, key )
+    # @param options[:life] may be set, but defaults to 1 minute
       @redis  = redis
       @key    = key
+      @life   = options[:life] || 60
     end
 
     def lock( timeout = 1, &block )
