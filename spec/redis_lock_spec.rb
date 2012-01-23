@@ -13,6 +13,11 @@ describe Redis::Lock, redis: true do
   end
 
 
+  it "can acquire a lock" do
+    a = Redis::Lock.new( redis, "test" )
+    a.successfully_locked_key?.should be_true
+  end
+
   it "can use a timeout" do
     @it.with_timeout(1) { true }.should be_true
     @it.with_timeout(1) { false }.should be_false
@@ -26,9 +31,19 @@ describe Redis::Lock, redis: true do
     redis.get("two").should eq("dos")
   end
 
-  it "can acquire a lock" do
-    a = Redis::Lock.new( redis, "test" )
-    a.successfully_locked_key?.should be_true
+  it "can detect expired locks" do
+    no_owner = nil
+    an_owner = "test"
+    past     = 1
+    present  = 2
+    future   = 3
+    @it.expired?( no_owner, nil,    present ).should be_false # no lock, but should it return true?
+    @it.expired?( no_owner, future, present ).should be_false # broken
+    @it.expired?( no_owner, past,   present ).should be_true  # broken
+    @it.expired?( an_owner, nil,    present ).should be_true  # broken
+    @it.expired?( an_owner, future, present ).should be_false
+    @it.expired?( an_owner, past,   present ).should be_true
+    # We leave [ present, present ] to be unspecified. It's only a single moment in time, so no worries.
   end
 
   it "works if you call Lock1.lock and Lock2.lock with the same owner"

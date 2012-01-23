@@ -103,6 +103,12 @@ class Redis
       end
     end
 
+    def expired?( owner, expiration, now = Time.now.to_i )
+      # It is expired if it exists (even if broken) and is expired.
+      expiration = expiration.to_i
+      ( ( owner ) || ( expiration > 0 ) ) && expiration < now
+    end
+
     def log( *messages )
       # STDERR.puts "[#{object_id}] #{messages.join(' ')}"
       true
