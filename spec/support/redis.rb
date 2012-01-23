@@ -10,8 +10,8 @@ module RedisClient
     @redis ||= ::Redis.connect(TEST_REDIS)
   end
 
-  def redis2
-    @redis2 ||= ::Redis.connect(TEST_REDIS)
+  def other
+    @other ||= ::Redis.connect(TEST_REDIS)
   end
 
   def with_watch( redis, *args )
@@ -25,13 +25,13 @@ module RedisClient
 
   def with_clean_redis(&block)
     redis.client.disconnect # auto connect after fork
-    redis2.client.disconnect # auto connect after fork
+    other.client.disconnect # auto connect after fork
     redis.flushall          # clean before run
     yield
   ensure
     redis.flushall          # clean up after run
     redis.quit              # quit (close) connection
-    redis2.quit              # quit (close) connection
+    other.quit              # quit (close) connection
   end
 
 end # RedisClient
