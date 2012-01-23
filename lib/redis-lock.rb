@@ -103,6 +103,16 @@ class Redis
       end
     end
 
+    def with_watch( *args, &block )
+      # Note: watch() gets cleared by a multi() but it's safe to call unwatch() anyway.
+      redis.watch( *args )
+      begin
+        block.call
+      ensure
+        redis.unwatch
+      end
+    end
+
     def expired?( owner, expiration, now = Time.now.to_i )
       # It is expired if it exists (even if broken) and is expired.
       expiration = expiration.to_i
