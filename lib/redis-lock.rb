@@ -8,6 +8,8 @@ class Redis
     class LockNotAcquired < StandardError
     end
 
+    attr :redis
+    attr :key
     attr :okey        # key with redis namespace
     attr :oval
     attr :xkey        # expiration key with redis namespace
