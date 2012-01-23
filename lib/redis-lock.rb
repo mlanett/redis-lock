@@ -60,7 +60,7 @@ class Redis
 
       loop do
         try_xval = Time.now.to_i + life
-        result   = redis.msetnx okey, oval, xkey, try_xval
+        result   = redis.mapped_msetnx okey => oval, xkey => try_xval
 
         if result == 1 then
           log "successfully_locked_key?() success"
