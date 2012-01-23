@@ -18,6 +18,9 @@ describe Redis::Lock, redis: true do
     a.successfully_locked_key?.should be_true
   end
 
+  it "can release a lock"
+  # should test release_lock
+
   it "can use a timeout" do
     @it.with_timeout(1) { true }.should be_true
     @it.with_timeout(1) { false }.should be_false

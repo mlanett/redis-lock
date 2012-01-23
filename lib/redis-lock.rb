@@ -78,6 +78,23 @@ class Redis
       end
     end
 
+    # Only actually deletes it if we own it.
+    # There may be strange cases where we fail to delete it, in which case expiration will solve the problem.
+    def release_lock( my_owner = oval )
+      # Use my_owner = oval to make testing easier.
+      with_watch( okey, xkey ) do
+        owner = redis.get( okey )
+        if owner == my_owner then
+          redis.multi do |multi|
+            multi.del( okey )
+            multi.del( xkey )
+          end
+        end
+      end
+      # No matter what, we don't have the lock.
+      @locked = false
+    end
+
     def stale_key?( now = Time.now.to_i )
       # Check if expiration exists and is it stale?
       # If so, delete it.
@@ -102,12 +119,6 @@ class Redis
       end # watch
       # Not stale
       return false
-    end
-
-    def release_lock
-      redis.del okey
-      redis.del xkey
-      true
     end
 
     # Calls block until it returns true or times out. Uses exponential backoff.
