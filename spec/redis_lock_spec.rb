@@ -21,14 +21,19 @@ describe Redis::Lock, redis: true do
   it "can use a timeout" do
     @it.with_timeout(1) { true }.should be_true
     @it.with_timeout(1) { false }.should be_false
+    # a few attempts are OK
     results = [ false, false, true ]
     @it.with_timeout(1) { results.shift }.should be_true
+    # this is too many attemps
+    results = [ false, false, false, false, false, true ]
+    @it.with_timeout(1) { results.shift }.should be_false
   end
 
-  it "can use msetnx" do
-    redis.msetnx "one", "uno", "two", "dos"
-    redis.get("one").should eq("uno")
-    redis.get("two").should eq("dos")
+  it "does not take too long to time out" do
+    start = Time.now.to_f
+    @it.with_timeout(1) { false }
+    time = Time.now.to_f - start
+    time.should be_within(0.2).of(1.0)
   end
 
   it "can detect expired locks" do
