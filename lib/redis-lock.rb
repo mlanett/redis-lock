@@ -78,8 +78,30 @@ class Redis
       end
     end
 
-    def stale_key?
-      false
+    def stale_key?( now = Time.now.to_i )
+      # Check if expiration exists and is it stale?
+      # If so, delete it.
+      # watch() both keys so we can detect if they change while we do this
+      # multi() will fail if keys have changed after watch()
+      # Thus, we snapshot consistency at the time of watch()
+      # Note: inside a watch() we get one and only one multi()
+      with_watch( okey, xkey ) do
+        owner  = redis.get( okey )
+        expire = redis.get( xkey )
+        if expired?( owner, expire, now ) then
+          result = redis.multi do |r|
+            r.del( okey )
+            r.del( xkey )
+          end
+          # If anything changed then multi() fails and returns nil
+          if result && result.size == 2 then
+            log "Deleted stale key from #{owner}"
+            return true
+          end
+        end
+      end # watch
+      # Not stale
+      return false
     end
 
     def release_lock
