@@ -3,6 +3,8 @@
 This gem implements a pessimistic lock using Redis.
 It correctly handles timeouts and vanishing lock owners (such as machine failures)
 
+This uses setnx, but not the setnx algorithm described in the redis cookbook, which is not robust.
+
 ## Installation
 
 Add this line to your application's Gemfile:
