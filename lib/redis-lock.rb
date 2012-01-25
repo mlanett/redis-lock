@@ -101,6 +101,17 @@ class Redis
       self
     end
 
+
+    def locked?( now = Time.now.to_i )
+      # read both in a transaction in a multi to ensure we have a consistent view
+      result = redis.multi do |multi|
+        multi.get( okey )
+        multi.get( xkey )
+      end
+      result && result.size == 2 && is_locked?( result[0], result[1], now )
+    end
+
+
     def stale_key?( now = Time.now.to_i )
       # Check if expiration exists and is it stale?
       # If so, delete it.
