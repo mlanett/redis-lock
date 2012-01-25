@@ -32,7 +32,7 @@ class Redis
     end
 
     def lock( timeout = 1, &block )
-      acquire_lock(timeout) or raise LockNotAcquired.new(key)
+      do_lock_with_timeout(timeout) or raise LockNotAcquired.new(key)
       if block then
         begin
           block.call
@@ -46,14 +46,18 @@ class Redis
       release_lock
     end
 
-    def acquire_lock( timeout )
+    #
+    # internal api
+    #
+
+    def do_lock_with_timeout( timeout )
       @locked = false
-      with_timeout(timeout) { successfully_locked_key? }
+      with_timeout(timeout) { do_lock }
       @locked
     end
 
     # @returns true if locked, false otherwise
-    def successfully_locked_key?( tries = 2 )
+    def do_lock( tries = 2 )
 
       # We need to set both owner and expire at the same time
       # If the existing lock is stale, we try again once
@@ -63,13 +67,13 @@ class Redis
         result   = redis.mapped_msetnx okey => oval, xkey => try_xval
 
         if result == 1 then
-          log "successfully_locked_key?() success"
+          log "do_lock() success"
           @xval   = try_xval
           @locked = true
           return true
 
         else
-          log "successfully_locked_key?() failed"
+          log "do_lock() failed"
           # consider the possibility that this lock is stale
           tries -= 1
           next if tries > 0 && stale_key?

@@ -15,7 +15,7 @@ describe Redis::Lock, redis: true do
 
   it "can acquire a lock" do
     a = Redis::Lock.new( redis, "test" )
-    a.successfully_locked_key?.should be_true
+    a.do_lock.should be_true
   end
 
   it "can release a lock"
