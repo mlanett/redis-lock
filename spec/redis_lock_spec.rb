@@ -16,6 +16,13 @@ describe Redis::Lock, redis: true do
     expect { redis.lock("key") { true } }.to_not raise_exception
   end
 
+  it "can lock two different items at the same time" do
+    @b1.lock do
+      expect { @b2.lock.unlock }.to_not raise_exception
+      @b1.should be_locked
+    end
+  end
+
 
   it "can acquire a lock" do
     @a.do_lock.should be_true
