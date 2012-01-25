@@ -56,17 +56,20 @@ describe Redis::Lock, redis: true do
 
   it "can detect expired locks if they exist in any form (even if broken) and are not current" do
     no_owner = nil
-    an_owner = "self"
-    it       = Redis::Lock.new( redis, "key", owner: an_owner )
     past     = 1
     present  = 2
     future   = 3
-    it.is_expired?( no_owner, nil,    present ).should be_false # no lock
-    it.is_expired?( no_owner, future, present ).should be_false # broken
-    it.is_expired?( no_owner, past,   present ).should be_true  # broken
-    it.is_expired?( an_owner, nil,    present ).should be_true  # broken
-    it.is_expired?( an_owner, future, present ).should be_false
-    it.is_expired?( an_owner, past,   present ).should be_true
+
+    @a.is_expired?( no_owner, nil,    present ).should be_false # no lock => not expired
+
+    @a.is_expired?( no_owner, future, present ).should be_true  # broken => expired
+    @a.is_expired?( no_owner, past,   present ).should be_true  # broken => expired
+    @a.is_expired?( @a_owner, nil,    present ).should be_true  # broken => expired
+
+    @a.is_expired?( @a_owner, future, present ).should be_false # current; not expired
+
+    @a.is_expired?( @a_owner, past,   present ).should be_true  # expired
+
     # We leave [ present, present ] to be unspecified.
   end
 
