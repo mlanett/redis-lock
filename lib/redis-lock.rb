@@ -48,6 +48,19 @@ class Redis
     end
 
     #
+    # queries
+    #
+
+    def locked?( now = Time.now.to_i )
+      # read both in a transaction in a multi to ensure we have a consistent view
+      result = redis.multi do |multi|
+        multi.get( okey )
+        multi.get( xkey )
+      end
+      result && result.size == 2 && is_locked?( result[0], result[1], now )
+    end
+
+    #
     # internal api
     #
 
@@ -101,17 +114,6 @@ class Redis
       self
     end
 
-
-    def locked?( now = Time.now.to_i )
-      # read both in a transaction in a multi to ensure we have a consistent view
-      result = redis.multi do |multi|
-        multi.get( okey )
-        multi.get( xkey )
-      end
-      result && result.size == 2 && is_locked?( result[0], result[1], now )
-    end
-
-
     def stale_key?( now = Time.now.to_i )
       # Check if expiration exists and is it stale?
       # If so, delete it.
@@ -138,7 +140,6 @@ class Redis
       return false
     end
 
-
     # Calls block until it returns true or times out. Uses exponential backoff.
     # @param block should return true if successful, false otherwise
     # @returns true if successful, false otherwise
@@ -154,7 +155,6 @@ class Redis
       end
     end
 
-
     def with_watch( *args, &block )
       # Note: watch() gets cleared by a multi() but it's safe to call unwatch() anyway.
       redis.watch( *args )
@@ -164,7 +164,6 @@ class Redis
         redis.unwatch
       end
     end
-
 
     # @returns true if they exist in any form (even if broken) and are not current
     def is_expired?( owner, expiration, now = Time.now.to_i )
@@ -177,7 +176,6 @@ class Redis
     def is_locked?( owner, expiration, now = Time.now.to_i )
       owner == oval && ! is_expired?( owner, expiration, now )
     end
-
 
     def log( *messages )
       # STDERR.puts "[#{object_id}] #{messages.join(' ')}"
