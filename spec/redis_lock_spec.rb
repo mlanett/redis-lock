@@ -45,12 +45,12 @@ describe Redis::Lock, redis: true do
     past     = 1
     present  = 2
     future   = 3
-    @it.expired?( no_owner, nil,    present ).should be_false # no lock, but should it return true?
-    @it.expired?( no_owner, future, present ).should be_false # broken
-    @it.expired?( no_owner, past,   present ).should be_true  # broken
-    @it.expired?( an_owner, nil,    present ).should be_true  # broken
-    @it.expired?( an_owner, future, present ).should be_false
-    @it.expired?( an_owner, past,   present ).should be_true
+    @it.is_expired?( no_owner, nil,    present ).should be_false # no lock, but should it return true?
+    @it.is_expired?( no_owner, future, present ).should be_false # broken
+    @it.is_expired?( no_owner, past,   present ).should be_true  # broken
+    @it.is_expired?( an_owner, nil,    present ).should be_true  # broken
+    @it.is_expired?( an_owner, future, present ).should be_false
+    @it.is_expired?( an_owner, past,   present ).should be_true
     # We leave [ present, present ] to be unspecified. It's only a single moment in time, so no worries.
   end
 

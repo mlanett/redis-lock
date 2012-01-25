@@ -105,7 +105,7 @@ class Redis
       with_watch( okey, xkey ) do
         owner  = redis.get( okey )
         expire = redis.get( xkey )
-        if expired?( owner, expire, now ) then
+        if is_expired?( owner, expire, now ) then
           result = redis.multi do |r|
             r.del( okey )
             r.del( xkey )
@@ -146,7 +146,7 @@ class Redis
       end
     end
 
-    def expired?( owner, expiration, now = Time.now.to_i )
+    def is_expired?( owner, expiration, now = Time.now.to_i )
       # It is expired if it exists (even if broken) and is expired.
       expiration = expiration.to_i
       ( ( owner ) || ( expiration > 0 ) ) && expiration < now
