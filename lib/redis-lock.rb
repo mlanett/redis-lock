@@ -146,6 +146,7 @@ class Redis
       end
     end
 
+    # @returns true if it exists in any form (even if broken) and is not valid
     def is_expired?( owner, expiration, now = Time.now.to_i )
       # It is expired if it exists (even if broken) and is expired.
       expiration = expiration.to_i
