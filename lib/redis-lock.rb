@@ -40,6 +40,7 @@ class Redis
           release_lock
         end
       end
+      self
     end
 
     def unlock
@@ -97,6 +98,7 @@ class Redis
       end
       # No matter what, we don't have the lock.
       @locked = false
+      self
     end
 
     def stale_key?( now = Time.now.to_i )
@@ -125,6 +127,7 @@ class Redis
       return false
     end
 
+
     # Calls block until it returns true or times out. Uses exponential backoff.
     # @param block should return true if successful, false otherwise
     # @returns true if successful, false otherwise
@@ -140,6 +143,7 @@ class Redis
       end
     end
 
+
     def with_watch( *args, &block )
       # Note: watch() gets cleared by a multi() but it's safe to call unwatch() anyway.
       redis.watch( *args )
@@ -150,21 +154,23 @@ class Redis
       end
     end
 
-    # @returns true if it exists in any form (even if broken) and is not valid
+
+    # @returns true if they exist in any form (even if broken) and are not current
     def is_expired?( owner, expiration, now = Time.now.to_i )
-      # It is expired if it exists (even if broken) and is expired.
       expiration = expiration.to_i
       ( ( owner ) || ( expiration > 0 ) ) && expiration < now
     end
+
 
     # @returns true if the lock exists and is owned by the given owner
     def is_locked?( owner, expiration, now = Time.now.to_i )
       owner == oval && ! is_expired?( owner, expiration, now )
     end
 
+
     def log( *messages )
       # STDERR.puts "[#{object_id}] #{messages.join(' ')}"
-      true
+      self
     end
 
   end # Lock
