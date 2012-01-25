@@ -26,6 +26,7 @@ describe Redis::Lock, redis: true do
     end
   end
 
+  it "works if you call Lock1.lock and Lock2.lock with the same owner"
 
   it "can acquire a lock" do
     @a.do_lock.should be_true
@@ -54,25 +55,6 @@ describe Redis::Lock, redis: true do
     time.should be_within(0.2).of(1.0)
   end
 
-  it "can detect expired locks if they exist in any form (even if broken) and are not current" do
-    no_owner = nil
-    past     = 1
-    present  = 2
-    future   = 3
-
-    @a.is_expired?( no_owner, nil,    present ).should be_false # no lock => not expired
-
-    @a.is_expired?( no_owner, future, present ).should be_true  # broken => expired
-    @a.is_expired?( no_owner, past,   present ).should be_true  # broken => expired
-    @a.is_expired?( @a_owner, nil,    present ).should be_true  # broken => expired
-
-    @a.is_expired?( @a_owner, future, present ).should be_false # current; not expired
-
-    @a.is_expired?( @a_owner, past,   present ).should be_true  # expired
-
-    # We leave [ present, present ] to be unspecified.
-  end
-
   it "can determine if it is locked" do
     owner   = "self"
     other   = "nope"
@@ -92,7 +74,23 @@ describe Redis::Lock, redis: true do
     # We leave [ present, present ] to be unspecified.
   end
 
+  it "can detect broken or expired locks" do
+    no_owner = nil
+    past     = 1
+    present  = 2
+    future   = 3
 
-  it "works if you call Lock1.lock and Lock2.lock with the same owner"
+    @a.is_deleteable?( no_owner, nil,    present ).should be_false # no lock => not expired
+
+    @a.is_deleteable?( no_owner, future, present ).should be_true  # broken => expired
+    @a.is_deleteable?( no_owner, past,   present ).should be_true  # broken => expired
+    @a.is_deleteable?( @a_owner, nil,    present ).should be_true  # broken => expired
+
+    @a.is_deleteable?( @a_owner, future, present ).should be_false # current; not expired
+
+    @a.is_deleteable?( @a_owner, past,   present ).should be_true  # expired
+
+    # We leave [ present, present ] to be unspecified.
+  end
 
 end

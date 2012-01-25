@@ -124,7 +124,7 @@ class Redis
       with_watch( okey, xkey ) do
         owner  = redis.get( okey )
         expire = redis.get( xkey )
-        if is_expired?( owner, expire, now ) then
+        if is_deleteable?( owner, expire, now ) then
           result = redis.multi do |r|
             r.del( okey )
             r.del( xkey )
@@ -165,16 +165,15 @@ class Redis
       end
     end
 
-    # @returns true if they exist in any form (even if broken) and are not current
-    def is_expired?( owner, expiration, now = Time.now.to_i )
-      expiration = expiration.to_i
-      ( ( owner ) || ( expiration > 0 ) ) && expiration < now
-    end
-
-
     # @returns true if the lock exists and is owned by the given owner
     def is_locked?( owner, expiration, now = Time.now.to_i )
-      owner == oval && ! is_expired?( owner, expiration, now )
+      owner == oval && ! is_deleteable?( owner, expiration, now )
+    end
+
+    # @returns true if this is a broken or expired lock
+    def is_deleteable?( owner, expiration, now = Time.now.to_i )
+      expiration = expiration.to_i
+      ( owner || expiration > 0 ) && ( ! owner || expiration < now )
     end
 
     def log( *messages )
