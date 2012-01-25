@@ -54,6 +54,26 @@ describe Redis::Lock, redis: true do
     # We leave [ present, present ] to be unspecified. It's only a single moment in time, so no worries.
   end
 
+  it "can determine if it is locked" do
+    owner   = "self"
+    other   = "nope"
+    a = Redis::Lock.new( redis, "test", owner: owner )
+    past    = 1
+    present = 2
+    future  = 3
+    a.is_locked?( nil,   nil,    present ).should be_false
+    a.is_locked?( nil,   future, present ).should be_false
+    a.is_locked?( nil,   past,   present ).should be_false
+    a.is_locked?( owner, nil,    present ).should be_false
+    a.is_locked?( owner, future, present ).should be_true  # the only valid case
+    a.is_locked?( owner, past,   present ).should be_false
+    a.is_locked?( other, nil,    present ).should be_false
+    a.is_locked?( other, future, present ).should be_false
+    a.is_locked?( other, past,   present ).should be_false
+    # We leave [ present, present ] to be unspecified. It's only a single moment in time, so no worries.
+  end
+
+
   it "works if you call Lock1.lock and Lock2.lock with the same owner"
 
 end

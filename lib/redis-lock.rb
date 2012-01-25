@@ -152,6 +152,11 @@ class Redis
       ( ( owner ) || ( expiration > 0 ) ) && expiration < now
     end
 
+    # @returns true if the lock exists and is owned by the given owner
+    def is_locked?( owner, expiration, now = Time.now.to_i )
+      owner == oval && ! is_expired?( owner, expiration, now )
+    end
+
     def log( *messages )
       # STDERR.puts "[#{object_id}] #{messages.join(' ')}"
       true
