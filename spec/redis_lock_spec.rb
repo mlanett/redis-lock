@@ -6,6 +6,7 @@ describe Redis::Lock, redis: true do
   let(:her) { "Alice" }
   let(:him) { "Bob" }
   let(:hers)       { Redis::Lock.new( redis, "alpha", owner: her ) }
+  let(:her_same)   { Redis::Lock.new( redis, "alpha", owner: her ) }
   let(:his)        { Redis::Lock.new( redis, "alpha", owner: him ) }
   let(:his_other)  { Redis::Lock.new( redis, "beta",  owner: him ) }
   let(:past   ) { 1 }
@@ -33,7 +34,11 @@ describe Redis::Lock, redis: true do
     end
   end
 
-  it "does not support nesting"
+  it "does not support nesting" do
+    hers.lock do
+      expect { her_same.lock }.to raise_exception
+    end
+  end
 
   it "can acquire a lock" do
     hers.do_lock.should be_true
