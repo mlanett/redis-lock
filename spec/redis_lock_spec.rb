@@ -70,7 +70,7 @@ describe Redis::Lock, redis: true do
     hers.life = 1
     hers.lock
     # don't unlock it, let hers time out
-    expect { his.lock(2).unlock }.to_not raise_exception
+    expect { his.lock(10).unlock }.to_not raise_exception
   end
 
   it "can determine if it is locked" do
