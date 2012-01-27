@@ -15,9 +15,14 @@ describe Redis::Lock, redis: true do
   it "can acquire and release a lock" do
     hers.lock do
       hers.should be_locked
-      expect { his.lock.unlock }.to raise_exception
     end
     hers.should_not be_locked
+  end
+
+  it "can prevent other use of a lock" do
+    hers.lock do
+      expect { his.lock.unlock }.to raise_exception
+    end
     expect { his.lock.unlock }.to_not raise_exception
   end
 
