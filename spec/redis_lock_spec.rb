@@ -56,6 +56,13 @@ describe Redis::Lock, redis: true do
     time.should be_within(0.2).of(1.0)
   end
 
+  it "can time out an expired lock" do
+    hers.life = 1
+    hers.lock
+    # don't unlock it, let hers time out
+    expect { his.lock(2).unlock }.to_not raise_exception
+  end
+
   it "can determine if it is locked" do
     hers.is_locked?( non, nil,    present ).should be_false
     hers.is_locked?( non, future, present ).should be_false
