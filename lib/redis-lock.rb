@@ -44,6 +44,7 @@ class Redis
 
     def unlock
       release_lock
+      self
     end
 
     #
@@ -80,7 +81,7 @@ class Redis
 
         if result == 1 then
           log "do_lock() success"
-          @xval   = try_xval
+          @xval = try_xval
           return true
 
         else
@@ -106,8 +107,6 @@ class Redis
           end
         end
       end
-      # No matter what, we don't have the lock.
-      self
     end
 
     def stale_key?( now = Time.now.to_i )
