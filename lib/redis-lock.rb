@@ -181,8 +181,8 @@ class Redis
 
   # Convenience methods
 
-  def lock( key, timeout = 1, &block )
-    Lock.new( self, key ).lock( timeout, &block )
+  def lock( key, timeout = 1, options = {}, &block )
+    Lock.new( self, key, options ).lock( timeout, &block )
   end
 
   def unlock( key )
