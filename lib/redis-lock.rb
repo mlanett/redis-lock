@@ -15,6 +15,7 @@ class Redis
     attr :xkey        # expiration key with redis namespace
     attr :xval
     attr :life, true  # how long we expect to keep this lock locked
+    attr :logger, true
 
     # @param redis is a Redis instance
     # @param key is a unique string identifying the object to lock, e.g. "user-1"
@@ -172,7 +173,7 @@ class Redis
     end
 
     def log( *messages )
-      # STDERR.puts "[#{object_id}] #{messages.join(' ')}"
+      logger.puts "[#{object_id}:#{oval}] #{messages.join(' ')}" if logger
       self
     end
 
