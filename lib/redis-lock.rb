@@ -14,8 +14,8 @@ class Redis
     attr :oval
     attr :xkey        # expiration key with redis namespace
     attr :xval
-    attr :life        # how long we expect to keep this lock locked
     attr :locked
+    attr :life, true  # how long we expect to keep this lock locked
 
     # @param redis is a Redis instance
     # @param key is a unique string identifying the object to lock, e.g. "user-1"
