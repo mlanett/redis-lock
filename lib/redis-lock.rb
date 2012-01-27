@@ -14,7 +14,6 @@ class Redis
     attr :oval
     attr :xkey        # expiration key with redis namespace
     attr :xval
-    attr :locked
     attr :life, true  # how long we expect to keep this lock locked
 
     # @param redis is a Redis instance
@@ -28,7 +27,6 @@ class Redis
       @oval   = options[:owner] || "#{`hostname`.strip}:#{Process.pid}"
       @xkey   = "lock:expire:#{key}"
       @life   = options[:life] || 60
-      @locked = false
     end
 
     def lock( timeout = 1, &block )
@@ -65,16 +63,15 @@ class Redis
     #
 
     def do_lock_with_timeout( timeout )
-      @locked = false
-      with_timeout(timeout) { do_lock }
-      @locked
+      locked = false
+      with_timeout(timeout) { locked = do_lock }
+      locked
     end
 
     # @returns true if locked, false otherwise
     def do_lock( tries = 2 )
-
       # We need to set both owner and expire at the same time
-      # If the existing lock is stale, we try again once
+      # If the existing lock is stale, we delete it and try again once
 
       loop do
         try_xval = Time.now.to_i + life
@@ -83,7 +80,6 @@ class Redis
         if result == 1 then
           log "do_lock() success"
           @xval   = try_xval
-          @locked = true
           return true
 
         else
@@ -110,7 +106,6 @@ class Redis
         end
       end
       # No matter what, we don't have the lock.
-      @locked = false
       self
     end
 
