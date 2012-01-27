@@ -81,12 +81,12 @@ class Redis
       # If the existing lock is stale, we delete it and try again once
 
       loop do
-        try_xval = Time.now.to_i + life
-        result   = redis.mapped_msetnx okey => oval, xkey => try_xval
+        new_xval = Time.now.to_i + life
+        result   = redis.mapped_msetnx okey => oval, xkey => new_xval
 
         if result == 1 then
           log "do_lock() success"
-          @xval = try_xval
+          @xval = new_xval
           return true
 
         else
@@ -198,7 +198,7 @@ class Redis
     end
 
     def log( *messages )
-      logger.puts "[#{object_id}:#{oval}] #{messages.join(' ')}" if logger
+      logger.puts "[#{Time.now.strftime "%Y%m%d%H%M%S"} #{oval}] #{messages.join(' ')}" if logger
       self
     end
 
