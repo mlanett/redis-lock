@@ -42,6 +42,11 @@ class Redis
       self
     end
 
+    def extend_life( lifetime )
+      do_extend( lifetime ) or raise LockNotAcquired.new(key)
+      self
+    end
+
     def unlock
       release_lock
       self
@@ -92,6 +97,27 @@ class Redis
           return false
         end
       end
+    end
+
+    def do_extend( new_life, my_owner = oval )
+      # We use watch and a transaction to ensure we only change a lock we own
+      # The transaction fails if the watched variable changed
+      # Use my_owner = oval to make testing easier.
+      new_xval = Time.now.to_i + new_life
+      with_watch( okey  ) do
+        owner = redis.get( okey )
+        if owner == my_owner then
+          result = redis.multi do |multi|
+            multi.set( xkey, new_xval )
+          end
+          if result && result.size == 1 then
+            log "do_extend() success"
+            @xval = new_xval
+            return true
+          end
+        end
+      end
+      return false
     end
 
     # Only actually deletes it if we own it.

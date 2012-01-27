@@ -73,6 +73,14 @@ describe Redis::Lock, redis: true do
     expect { his.lock(10).unlock }.to_not raise_exception
   end
 
+  it "can extend the lifetime of a lock" do
+    hers.life = 1
+    hers.lock
+    hers.extend_life(100)
+    expect { his.lock(10).unlock }.to raise_exception
+    hers.unlock
+  end
+
   it "can determine if it is locked" do
     hers.is_locked?( non, nil,    present ).should be_false
     hers.is_locked?( non, future, present ).should be_false
