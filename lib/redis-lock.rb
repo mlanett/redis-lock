@@ -85,12 +85,12 @@ class Redis
         result   = redis.mapped_msetnx okey => oval, xkey => new_xval
 
         if result == 1 then
-          log "do_lock() success"
+          log :debug, "do_lock() success"
           @xval = new_xval
           return true
 
         else
-          log "do_lock() failed"
+          log :debug, "do_lock() failed"
           # consider the possibility that this lock is stale
           tries -= 1
           next if tries > 0 && stale_key?
@@ -111,7 +111,7 @@ class Redis
             multi.set( xkey, new_xval )
           end
           if result && result.size == 1 then
-            log "do_extend() success"
+            log :debug, "do_extend() success"
             @xval = new_xval
             return true
           end
@@ -152,7 +152,7 @@ class Redis
           end
           # If anything changed then multi() fails and returns nil
           if result && result.size == 2 then
-            log "Deleted stale key from #{owner}"
+            log :info, "Deleted stale key from #{owner}"
             return true
           end
         end
@@ -170,7 +170,7 @@ class Redis
       # this looks inelegant compared to while Time.now < expire, but does not oversleep
       loop do
         return true if block.call
-        log "Timeout" and return false if Time.now + sleepy > expire
+        log :debug, "Timeout" and return false if Time.now + sleepy > expire
         sleep(sleepy)
         sleepy *= 2
       end
@@ -197,8 +197,10 @@ class Redis
       ( owner || expiration > 0 ) && ( ! owner || expiration < now )
     end
 
-    def log( *messages )
-      logger.puts "[#{Time.now.strftime "%Y%m%d%H%M%S"} #{oval}] #{messages.join(' ')}" if logger
+    def log( level, *messages )
+      if logger then
+        logger.send(level) { "[#{Time.now.strftime "%Y%m%d%H%M%S"} #{oval}] #{messages.join(' ')}" }
+      end
       self
     end
 
