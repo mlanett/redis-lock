@@ -73,7 +73,7 @@ describe Redis::Lock, redis: true do
     expect { his.lock(10).unlock }.to_not raise_exception
   end
 
-  it "can extend the lifetime of a lock" do
+  it "can extend the life of a lock" do
     hers.life = 1
     hers.lock
     hers.extend_life(100)

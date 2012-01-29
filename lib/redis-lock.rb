@@ -43,8 +43,8 @@ class Redis
       self
     end
 
-    def extend_life( lifetime )
-      do_extend( lifetime ) or raise LockNotAcquired.new(key)
+    def extend_life( new_life )
+      do_extend( new_life ) or raise LockNotAcquired.new(key)
       self
     end
 
