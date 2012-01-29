@@ -22,6 +22,7 @@ class Redis
     # @param options[:life] may be set, but defaults to 1 minute
     # @param options[:owner] may be set, but defaults to HOSTNAME:PID
     def initialize( redis, key, options = {} )
+      check_keys( options, :owner, :life )
       @redis  = redis
       @key    = key
       @okey   = "lock:owner:#{key}"
@@ -202,6 +203,11 @@ class Redis
         logger.send(level) { "[#{Time.now.strftime "%Y%m%d%H%M%S"} #{oval}] #{messages.join(' ')}" }
       end
       self
+    end
+
+    def check_keys( set, *keys )
+      extra = set.keys - keys
+      raise "Unknown Option #{extra.first}" if extra.size > 0
     end
 
   end # Lock
