@@ -31,7 +31,7 @@ class Redis
       @life   = options[:life] || 60
     end
 
-    def lock( timeout = 1, &block )
+    def lock( timeout = 10, &block )
       do_lock_with_timeout(timeout) or raise LockNotAcquired.new(key)
       if block then
         begin
@@ -214,7 +214,7 @@ class Redis
 
   # Convenience methods
 
-  def lock( key, timeout = 1, options = {}, &block )
+  def lock( key, timeout = 10, options = {}, &block )
     Lock.new( self, key, options ).lock( timeout, &block )
   end
 
