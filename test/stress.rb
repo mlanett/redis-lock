@@ -23,18 +23,6 @@ OptionParser.new do |opts|
   opts.on( "-h", "--help", "Display this usage summary" ) { puts opts; exit }
 end.parse!
 
-class Thing
-  attr :id
-  attr :activity
-  def initialize( id, activity )
-    @id       = id
-    @activity = activity
-  end
-  def process
-    Kernel.sleep( rand activity )
-  end
-end # Thing
-
 class Runner
 
   attr :options
