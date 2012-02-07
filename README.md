@@ -30,14 +30,14 @@ rather than acquiring the lock with a very long lifetime which will result in lo
 
 A lock needs an owner. Redis::Lock defaults to using an owner id of HOSTNAME:PID.
 
-A lock may need more than one attempt to acquire it. Redis::Lock offers a timeout; this defaults to 1 second.
+A lock may need more than one attempt to acquire it. Redis::Lock offers a timeout; this defaults to 10 seconds.
 It uses exponential backoff with sleeps so it's fairly safe to use longer timeouts.
 
 ## Usage
 
 This gem adds lock() and unlock() to Redis instances.
 lock() takes a block and is safer than using lock() and unlock() separately.
-lock() takes a key and lifetime and optionally a timeout (otherwise defaulting to 1 second).
+lock() takes a key and lifetime and optionally a timeout (otherwise defaulting to 10 second).
 
 redis.lock("test") { do_something }
 
