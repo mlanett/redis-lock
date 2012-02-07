@@ -214,8 +214,10 @@ class Redis
 
   # Convenience methods
 
-  def lock( key, timeout = 10, options = {}, &block )
-    Lock.new( self, key, options ).lock( timeout, &block )
+  # @option timeout defaults to 10 seconds
+  def lock( key, options = {}, &block )
+    acquire = options.delete(:acquire) || 10
+    Lock.new( self, key, options ).lock( acquire, &block )
   end
 
   def unlock( key )

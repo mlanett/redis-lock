@@ -36,7 +36,7 @@ class Runner
   end
 
   def test( key, time )
-    redis.lock( key, time, life: time*2 ) do
+    redis.lock( key, acquire: time, life: time*2 ) do
       val1 = rand(65536)
       redis.set( "#{key}:widget", val1 )
       Kernel.sleep( time )
