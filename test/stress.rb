@@ -87,6 +87,8 @@ end
 
 # main
 
+puts "[#{Process.pid}] Starting with #{options.inspect}"
+
 redis = ::Redis.connect(TEST_REDIS)
 redis.flushall          # clean before run
 redis.client.disconnect # don't keep when forking
