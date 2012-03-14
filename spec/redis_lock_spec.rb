@@ -55,7 +55,7 @@ describe Redis::Lock, redis: true do
     results = [ false, false, true ]
     hers.with_timeout(1) { results.shift }.should be_true
     # this is too many attemps
-    results = [ false, false, false, false, false, true ]
+    results = [ false, false, false, false, false, false, false, false, false, false, true ]
     hers.with_timeout(1) { results.shift }.should be_false
   end
 
