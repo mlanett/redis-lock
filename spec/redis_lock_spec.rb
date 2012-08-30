@@ -20,16 +20,22 @@ describe Redis::Lock, redis: true do
     hers.should_not be_locked
   end
 
+  it 'returns the return value of the block' do
+    hers.lock do
+      1
+    end.should eql(1)
+  end
+
   it "can prevent other use of a lock" do
     hers.lock do
-      expect { his.lock.unlock }.to raise_exception
+      expect { his.lock; his.unlock }.to raise_exception
     end
-    expect { his.lock.unlock }.to_not raise_exception
+    expect { his.lock; his.unlock }.to_not raise_exception
   end
 
   it "can lock two different items at the same time" do
     his.lock do
-      expect { his_other.lock.unlock }.to_not raise_exception
+      expect { his_other.lock; his_other.unlock }.to_not raise_exception
       his.should be_locked
     end
   end
@@ -45,7 +51,7 @@ describe Redis::Lock, redis: true do
   end
 
   it "can release a lock" do
-    hers.lock.release_lock
+    hers.lock; hers.release_lock
   end
 
   it "can use a timeout" do
@@ -70,14 +76,14 @@ describe Redis::Lock, redis: true do
     hers.life = 1
     hers.lock
     # don't unlock it, let hers time out
-    expect { his.lock(10).unlock }.to_not raise_exception
+    expect { his.lock(10); his.unlock }.to_not raise_exception
   end
 
   it "can extend the life of a lock" do
     hers.life = 1
     hers.lock
     hers.extend_life(100)
-    expect { his.lock(10).unlock }.to raise_exception
+    expect { his.lock(10); his.unlock }.to raise_exception
     hers.unlock
   end
 

@@ -35,12 +35,12 @@ class Redis
       do_lock_with_timeout(timeout) or raise LockNotAcquired.new(key)
       if block then
         begin
-          block.call
+          result = block.call
         ensure
           release_lock
         end
       end
-      self
+      result
     end
 
     def extend_life( new_life )
@@ -85,7 +85,7 @@ class Redis
         new_xval = Time.now.to_i + life
         result   = redis.mapped_msetnx okey => oval, xkey => new_xval
 
-        if result == 1 then
+        if [1, true].include?(result) then
           log :debug, "do_lock() success"
           @xval = new_xval
           return true
