@@ -1,5 +1,8 @@
 # Redis::Lock
 
+[![Build Status](https://secure.travis-ci.org/langalex/redis-lock.png?branch=master)](http://travis-ci.org/langalex/redis-lock)
+
+
 This gem implements a pessimistic lock using Redis.
 It correctly handles timeouts and vanishing lock owners (such as machine failures)
 
