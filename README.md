@@ -9,7 +9,7 @@ This uses setnx, but not the setnx algorithm described in the redis cookbook, wh
 
 Add this line to your application's Gemfile:
 
-    gem 'redis-lock'
+    gem 'mlanett-redis-lock', require: 'redis-lock'
 
 And then execute:
 
@@ -17,7 +17,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install redis-lock
+    $ gem install mlanett-redis-lock
 
 ## Background
 
