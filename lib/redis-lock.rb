@@ -85,7 +85,7 @@ class Redis
         new_xval = Time.now.to_i + life
         result   = redis.mapped_msetnx okey => oval, xkey => new_xval
 
-        if result == 1 then
+        if [1, true].include?(result) then
           log :debug, "do_lock() success"
           @xval = new_xval
           return true
