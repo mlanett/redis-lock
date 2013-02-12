@@ -1,5 +1,8 @@
 # Redis::Lock
 
+[![Build Status](https://secure.travis-ci.org/langalex/redis-lock.png?branch=master)](http://travis-ci.org/langalex/redis-lock)
+
+
 This gem implements a pessimistic lock using Redis.
 It correctly handles timeouts and vanishing lock owners (such as machine failures)
 
@@ -9,7 +12,7 @@ This uses setnx, but not the setnx algorithm described in the redis cookbook, wh
 
 Add this line to your application's Gemfile:
 
-    gem 'redis-lock'
+    gem 'mlanett-redis-lock', require: 'redis-lock'
 
 And then execute:
 
@@ -17,7 +20,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install redis-lock
+    $ gem install mlanett-redis-lock
 
 ## Background
 
