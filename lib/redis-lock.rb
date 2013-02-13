@@ -21,14 +21,16 @@ class Redis
     # @param key is a unique string identifying the object to lock, e.g. "user-1"
     # @param options[:life] may be set, but defaults to 1 minute
     # @param options[:owner] may be set, but defaults to HOSTNAME:PID
+    # @param options[:sleep] optional, number of milliseconds to sleep when lock is held, defaults to 125
     def initialize( redis, key, options = {} )
-      check_keys( options, :owner, :life )
+      check_keys( options, :owner, :life, :sleep )
       @redis  = redis
       @key    = key
       @okey   = "lock:owner:#{key}"
       @oval   = options[:owner] || "#{`hostname`.strip}:#{Process.pid}"
       @xkey   = "lock:expire:#{key}"
       @life   = options[:life] || 60
+      @sleep_in_ms = options[:sleep] || 125
     end
 
     def lock( timeout = 10, &block )
@@ -167,11 +169,11 @@ class Redis
     # @returns true if successful, false otherwise
     def with_timeout( timeout, &block )
       expire = Time.now + timeout.to_f
-      sleepy = 0.125
+      sleepy = @sleep_in_ms / 1000.to_f()
       # this looks inelegant compared to while Time.now < expire, but does not oversleep
       loop do
         return true if block.call
-        log :debug, "Timeout" and return false if Time.now + sleepy > expire
+        log :debug, "Timeout for #{@key}" and return false if Time.now + sleepy > expire
         sleep(sleepy)
         # might like a different strategy, but general goal is not use 100% cpu while contending for a lock.
         # sleepy = [ sleepy * 2, ( expire - Time.now ) / 4 ].min
