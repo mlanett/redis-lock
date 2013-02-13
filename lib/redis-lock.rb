@@ -23,7 +23,7 @@ class Redis
     # @param options[:owner] may be set, but defaults to HOSTNAME:PID
     # @param options[:sleep] optional, number of milliseconds to sleep when lock is held, defaults to 125
     def initialize( redis, key, options = {} )
-      check_keys( options, :owner, :life )
+      check_keys( options, :owner, :life, :sleep )
       @redis  = redis
       @key    = key
       @okey   = "lock:owner:#{key}"
