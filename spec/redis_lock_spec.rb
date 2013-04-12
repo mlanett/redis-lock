@@ -26,6 +26,12 @@ describe Redis::Lock, redis: true do
     end.should eql(1)
   end
 
+  it "passes the lock into a supplied block" do
+    hers.lock do |lock|
+      lock.should be_an_instance_of(Redis::Lock)
+    end
+  end
+
   it "can prevent other use of a lock" do
     hers.lock do
       expect { his.lock; his.unlock }.to raise_exception
