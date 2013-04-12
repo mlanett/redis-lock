@@ -37,7 +37,7 @@ class Redis
       do_lock_with_timeout(timeout) or raise LockNotAcquired.new(key)
       if block then
         begin
-          result = block.call
+          result = block.call(self)
         ensure
           release_lock
         end
