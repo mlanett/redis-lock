@@ -20,16 +20,32 @@ describe Redis::Lock, redis: true do
     hers.should_not be_locked
   end
 
-  it 'returns the return value of the block' do
-    hers.lock do
-      1
-    end.should eql(1)
-  end
+  context "when using blocks" do
 
-  it "passes the lock into a supplied block" do
-    hers.lock do |lock|
-      lock.should be_an_instance_of(Redis::Lock)
+    it 'returns the return value of the block' do
+      hers.lock do
+        1
+      end.should eql(1)
     end
+
+    it "returns the return value of the lambda" do
+      action = ->() { 1 }
+      hers.lock( &action ).should eq(1)
+    end
+
+    it "passes the lock into a supplied block" do
+      hers.lock do |lock|
+        lock.should be_an_instance_of(Redis::Lock)
+      end
+    end
+
+    it "passes the lock into a supplied lambda" do
+      action = ->(lock) do
+        lock.should be_an_instance_of(Redis::Lock)
+      end
+      hers.lock( &action )
+    end
+
   end
 
   it "can prevent other use of a lock" do

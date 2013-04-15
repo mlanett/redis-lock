@@ -44,6 +44,13 @@ lock() takes a key and lifetime and optionally a timeout (otherwise defaulting t
 
 redis.lock("test") { |lock| do_something }
 
+redis.lock("test") do |lock|
+  array.each do |entry|
+    do_something(entry)
+    lock.extend_life(60)
+  end
+end
+
 ## Problems
 
 Why do other gems get this wrong?
