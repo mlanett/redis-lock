@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    mlanett-redis-lock (0.1.1)
+    mlanett-redis-lock (0.2.3)
       redis
 
 GEM
