@@ -8,14 +8,14 @@ class Redis
     class LockNotAcquired < StandardError
     end
 
-    attr :redis
-    attr :key
-    attr :okey        # key with redis namespace
-    attr :oval
-    attr :xkey        # expiration key with redis namespace
-    attr :xval
-    attr :life, true  # how long we expect to keep this lock locked
-    attr :logger, true
+    attr_reader :redis
+    attr_reader :key
+    attr_reader :okey       # key with redis namespace
+    attr_reader :oval
+    attr_reader :xkey       # expiration key with redis namespace
+    attr_reader :xval
+    attr_accessor :life     # how long we expect to keep this lock locked
+    attr_accessor :logger
 
     # @param redis is a Redis instance
     # @param key is a unique string identifying the object to lock, e.g. "user-1"
