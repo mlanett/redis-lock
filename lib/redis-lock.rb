@@ -17,6 +17,8 @@ class Redis
     attr_accessor :life     # how long we expect to keep this lock locked
     attr_accessor :logger
 
+    HOST = `hostname`.strip
+
     # @param redis is a Redis instance
     # @param key is a unique string identifying the object to lock, e.g. "user-1"
     # @param options[:life] may be set, but defaults to 1 minute
@@ -27,7 +29,7 @@ class Redis
       @redis  = redis
       @key    = key
       @okey   = "lock:owner:#{key}"
-      @oval   = options[:owner] || "#{`hostname`.strip}:#{Process.pid}"
+      @oval   = options[:owner] || "#{HOST}:#{Process.pid}"
       @xkey   = "lock:expire:#{key}"
       @life   = options[:life] || 60
       @sleep_in_ms = options[:sleep] || 125
