@@ -2,7 +2,7 @@
 require File.expand_path('../lib/redis-lock/version', __FILE__)
 
 Gem::Specification.new do |gem|
-  gem.authors       = ["Mark Lanett"]
+  gem.authors       = ["Mark Lanett", "Ravil Bayramgalin", "Jamie Cobbett", "Jonathan Hyman", "Alexander Lang"]
   gem.email         = ["mark.lanett@gmail.com"]
   gem.description   = %q{Pessimistic locking using Redis}
   gem.summary       = %q{Pessimistic locking using Redis}

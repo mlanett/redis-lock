@@ -62,6 +62,10 @@ You need to handle race conditions while cleaning the stale lock and acquiring a
 The code which cleans the stale lock may not be able to assume it gets the new one.
 The code which cleans the stale lock must not interfere with a different owner acquiring the lock.
 
+## Contributors
+
+Alexander Lang (langalex), Jonathan Hyman (jonhyman), Jamie Cobbett (jamiecobbett), and Ravil Bayramgalin (brainopia) have contributed to Redis Lock.
+
 ## Contributing
 
 1. Fork it
