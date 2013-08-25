@@ -50,9 +50,9 @@ redis.lock("test") do |lock|
   end
 end
 
-## Problems
+## Goals
 
-Why do other gems get this wrong?
+I wrote this when noticing that other lock gems were using non-robust approaches.
 
 You need to be able to handle race conditions while acquiring the lock.
 You need to be able to handle the owner of the lock failing to release it.
