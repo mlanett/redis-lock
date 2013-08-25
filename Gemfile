@@ -4,10 +4,10 @@ source 'https://rubygems.org'
 gemspec
 
 group :development do
+  gem "guard"
   gem "guard-rspec"
   gem "rb-fsevent"      # for guard
   gem "rspec"
-  gem "ruby-debug19", require: false
 end
 
 group :test do
