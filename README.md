@@ -34,7 +34,6 @@ rather than acquiring the lock with a very long lifetime which will result in lo
 A lock needs an owner. Redis::Lock defaults to using an owner id of HOSTNAME:PID.
 
 A lock may need more than one attempt to acquire it. Redis::Lock offers a timeout; this defaults to 10 seconds.
-It uses exponential backoff with sleeps so it's fairly safe to use longer timeouts.
 
 ## Usage
 

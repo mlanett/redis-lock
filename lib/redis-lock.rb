@@ -166,9 +166,10 @@ class Redis
       return false
     end
 
-    # Calls block until it returns true or times out. TODO: Use exponential backoff.
+    # Calls block until it returns true or times out.
     # @param block should return true if successful, false otherwise
     # @returns true if successful, false otherwise
+    # Note: at one time I thought of using a backoff strategy, but don't think that's important now.
     def with_timeout( timeout, &block )
       expire = Time.now + timeout.to_f
       sleepy = @sleep_in_ms / 1000.to_f()
@@ -178,7 +179,6 @@ class Redis
         log :debug, "Timeout for #{@key}" and return false if Time.now + sleepy > expire
         sleep(sleepy)
         # might like a different strategy, but general goal is not use 100% cpu while contending for a lock.
-        # sleepy = [ sleepy * 2, ( expire - Time.now ) / 4 ].min
       end
     end
 
