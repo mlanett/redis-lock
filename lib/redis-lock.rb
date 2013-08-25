@@ -21,9 +21,9 @@ class Redis
 
     # @param redis is a Redis instance
     # @param key is a unique string identifying the object to lock, e.g. "user-1"
-    # @param options[:life] may be set, but defaults to 1 minute
+    # @param options[:life] should be set, but defaults to 1 minute
     # @param options[:owner] may be set, but defaults to HOSTNAME:PID
-    # @param options[:sleep] optional, number of milliseconds to sleep when lock is held, defaults to 125
+    # @param options[:sleep] is used when trying to acquire the lock; milliseconds; defaults to 125.
     def initialize( redis, key, options = {} )
       check_keys( options, :owner, :life, :sleep )
       @redis  = redis
@@ -35,8 +35,9 @@ class Redis
       @sleep_in_ms = options[:sleep] || 125
     end
 
-    def lock( timeout = 10, &block )
-      do_lock_with_timeout(timeout) or raise LockNotAcquired.new(key)
+    # @param acquisition_timeout defaults to 10 seconds and can be used to determine how long to wait for a lock.
+    def lock( acquisition_timeout = 10, &block )
+      do_lock_with_timeout(acquisition_timeout) or raise LockNotAcquired.new(key)
       if block then
         begin
           result = (block.arity == 1) ? block.call(self) : block.call
@@ -74,9 +75,9 @@ class Redis
     # internal api
     #
 
-    def do_lock_with_timeout( timeout )
+    def do_lock_with_timeout( acquisition_timeout )
       locked = false
-      with_timeout(timeout) { locked = do_lock }
+      with_timeout(acquisition_timeout) { locked = do_lock }
       locked
     end
 
@@ -219,7 +220,12 @@ class Redis
 
   # Convenience methods
 
-  # @option timeout defaults to 10 seconds
+  # @param key is a unique string identifying the object to lock, e.g. "user-1"
+  # @options are as specified for Redis::Lock#lock (including :life)
+  # @param options[:life] should be set, but defaults to 1 minute
+  # @param options[:owner] may be set, but defaults to HOSTNAME:PID
+  # @param options[:sleep] is used when trying to acquire the lock; milliseconds; defaults to 125.
+  # @param options[:acquire] defaults to 10 seconds and can be used to determine how long to wait for a lock.
   def lock( key, options = {}, &block )
     acquire = options.delete(:acquire) || 10
     Lock.new( self, key, options ).lock( acquire, &block )

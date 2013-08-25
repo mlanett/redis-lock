@@ -136,4 +136,10 @@ describe Redis::Lock, redis: true do
     # We leave [ present, present ] to be unspecified.
   end
 
+  example "How to get a lock using the helper." do
+    redis.lock "mykey", life: 10, acquire: 1 do |lock|
+      lock.extend_life 10
+    end
+  end
+
 end
