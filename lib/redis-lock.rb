@@ -232,7 +232,7 @@ class Redis
   end
 
   def unlock( key )
-    Lock( self, key ).unlock
+    Lock.new( self, key ).unlock
   end
 
 end # Redis
