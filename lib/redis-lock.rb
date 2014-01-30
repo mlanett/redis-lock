@@ -228,11 +228,11 @@ class Redis
   # @param options[:acquire] defaults to 10 seconds and can be used to determine how long to wait for a lock.
   def lock( key, options = {}, &block )
     acquire = options.delete(:acquire) || 10
-    Lock.new( self, key, options ).lock( acquire, &block )
+    Redis::Lock.new( self, key, options ).lock( acquire, &block )
   end
 
   def unlock( key )
-    Lock.new( self, key ).unlock
+    Redis::Lock.new( self, key ).unlock
   end
 
 end # Redis
