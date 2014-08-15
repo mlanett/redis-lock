@@ -59,8 +59,7 @@ EOS
     end
 
     # @param acquisition_timeout defaults to 10 seconds and can be used to determine how long to wait for a lock.
-    def lock( acquisition_timeout = nil, &block )
-      acquisition_timeout = @@config.default_timeout if acquisition_timeout.nil?
+    def lock( acquisition_timeout = @@config.default_timeout, &block )
       do_lock_with_timeout(acquisition_timeout) or raise LockNotAcquired.new(key)
       if block then
         begin
