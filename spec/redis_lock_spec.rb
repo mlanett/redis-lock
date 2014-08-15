@@ -102,33 +102,6 @@ describe Redis::Lock, redis: true do
     hers.unlock
   end
 
-  it "can determine if it is locked" do
-    expect(hers.is_locked?( non, nil,    present )).to be_falsy
-    expect(hers.is_locked?( non, future, present )).to be_falsy
-    expect(hers.is_locked?( non, past,   present )).to be_falsy
-    expect(hers.is_locked?( her, nil,    present )).to be_falsy
-    expect(hers.is_locked?( her, future, present )).to be_truthy  # the only valid case
-    expect(hers.is_locked?( her, past,   present )).to be_falsy
-    expect(hers.is_locked?( him, nil,    present )).to be_falsy
-    expect(hers.is_locked?( him, future, present )).to be_falsy
-    expect(hers.is_locked?( him, past,   present )).to be_falsy
-    # We leave [ present, present ] to be unspecified.
-  end
-
-  it "can detect broken or expired locks" do
-    expect(hers.is_deleteable?( non, nil,    present )).to be_falsy # no lock => not expired
-
-    expect(hers.is_deleteable?( non, future, present )).to be_truthy  # broken => expired
-    expect(hers.is_deleteable?( non, past,   present )).to be_truthy  # broken => expired
-    expect(hers.is_deleteable?( her, nil,    present )).to be_truthy  # broken => expired
-
-    expect(hers.is_deleteable?( her, future, present )).to be_falsy   # current; not expired
-
-    expect(hers.is_deleteable?( her, past,   present )).to be_truthy  # expired
-
-    # We leave [ present, present ] to be unspecified.
-  end
-
   example "How to get a lock using the helper." do
     redis.lock "mykey", life: 10, acquire: 1 do |lock|
       lock.extend_life 10

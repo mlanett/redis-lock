@@ -4,25 +4,45 @@ require "redis-lock/version"
 
 class Redis
 
+  ###
+  # Set/release/extend locks on a single redis instance.
+  # See http://redis.io/commands/set
+  #
   class Lock
 
     class LockNotAcquired < StandardError
     end
 
     @@config = OpenStruct.new(
-      default_timeout: 10
+      default_timeout: 10,
+      default_life: 60,
+      default_sleep: 125
     )
 
     attr_reader :redis
     attr_reader :key
-    attr_reader :okey       # key with redis namespace
-    attr_reader :oval
-    attr_reader :xkey       # expiration key with redis namespace
-    attr_reader :xval
+    attr_reader :owner
     attr_accessor :life     # how long we expect to keep this lock locked
     attr_accessor :logger
 
     HOST = `hostname`.strip
+    RELEASE_SCRIPT = <<EOS
+if redis.call("get",KEYS[1]) == ARGV[1]
+then
+    return redis.call("del",KEYS[1])
+else
+    return 0
+end
+EOS
+
+    EXTEND_SCRIPT = <<EOS
+if redis.call("get",KEYS[1]) == ARGV[1]
+then
+    return redis.call("expire",KEYS[1],tonumber(ARGV[2]))
+else
+    return 0
+end
+EOS
 
     # @param redis is a Redis instance
     # @param key is a unique string identifying the object to lock, e.g. "user-1"
@@ -32,12 +52,10 @@ class Redis
     def initialize( redis, key, options = {} )
       check_keys( options, :owner, :life, :sleep )
       @redis  = redis
-      @key    = key
-      @okey   = "lock:owner:#{key}"
-      @oval   = options[:owner] || "#{HOST}:#{Process.pid}"
-      @xkey   = "lock:expire:#{key}"
-      @life   = options[:life] || 60
-      @sleep_in_ms = options[:sleep] || 125
+      @key    = "lock:#{key}"
+      @owner  = options[:owner] || "#{HOST}:#{Process.pid}"
+      @life   = options[:life] || @@config.default_life
+      @sleep_in_ms = options[:sleep] || @@config.default_sleep
     end
 
     # @param acquisition_timeout defaults to 10 seconds and can be used to determine how long to wait for a lock.
@@ -69,18 +87,14 @@ class Redis
     #
 
     def locked?( now = Time.now.to_i )
-      # read both in a transaction in a multi to ensure we have a consistent view
-      result = redis.multi do |multi|
-        multi.get( okey )
-        multi.get( xkey )
-      end
-      result && result.size == 2 && is_locked?( result[0], result[1], now )
+      redis.get(key) == owner
     end
 
     #
     # internal api
     #
 
+    private
     def do_lock_with_timeout( acquisition_timeout )
       locked = false
       with_timeout(acquisition_timeout) { locked = do_lock }
@@ -88,89 +102,19 @@ class Redis
     end
 
     # @returns true if locked, false otherwise
-    def do_lock( tries = 2 )
-      # We need to set both owner and expire at the same time
-      # If the existing lock is stale, we delete it and try again once
-
-      loop do
-        new_xval = Time.now.to_i + life
-        result   = redis.mapped_msetnx okey => oval, xkey => new_xval
-
-        if [1, true].include?(result) then
-          log :debug, "do_lock() success"
-          @xval = new_xval
-          return true
-
-        else
-          log :debug, "do_lock() failed"
-          # consider the possibility that this lock is stale
-          tries -= 1
-          next if tries > 0 && stale_key?
-          return false
-        end
-      end
+    def do_lock
+      !!redis.set(key, owner, nx: true, px: (life * 1000).to_i)
     end
 
-    def do_extend( new_life, my_owner = oval )
-      # We use watch and a transaction to ensure we only change a lock we own
-      # The transaction fails if the watched variable changed
-      # Use my_owner = oval to make testing easier.
-      new_xval = Time.now.to_i + new_life
-      with_watch( okey  ) do
-        owner = redis.get( okey )
-        if owner == my_owner then
-          result = redis.multi do |multi|
-            multi.set( xkey, new_xval )
-          end
-          if result && result.size == 1 then
-            log :debug, "do_extend() success"
-            @xval = new_xval
-            return true
-          end
-        end
-      end
-      return false
+    def do_extend( new_life, my_owner = owner )
+      !!redis.eval_and_cache(
+        EXTEND_SCRIPT, keys: [key], argv: [my_owner, new_life])
     end
 
     # Only actually deletes it if we own it.
     # There may be strange cases where we fail to delete it, in which case expiration will solve the problem.
-    def release_lock( my_owner = oval )
-      # Use my_owner = oval to make testing easier.
-      with_watch( okey, xkey ) do
-        owner = redis.get( okey )
-        if owner == my_owner then
-          redis.multi do |multi|
-            multi.del( okey )
-            multi.del( xkey )
-          end
-        end
-      end
-    end
-
-    def stale_key?( now = Time.now.to_i )
-      # Check if expiration exists and is it stale?
-      # If so, delete it.
-      # watch() both keys so we can detect if they change while we do this
-      # multi() will fail if keys have changed after watch()
-      # Thus, we snapshot consistency at the time of watch()
-      # Note: inside a watch() we get one and only one multi()
-      with_watch( okey, xkey ) do
-        owner  = redis.get( okey )
-        expire = redis.get( xkey )
-        if is_deleteable?( owner, expire, now ) then
-          result = redis.multi do |r|
-            r.del( okey )
-            r.del( xkey )
-          end
-          # If anything changed then multi() fails and returns nil
-          if result && result.size == 2 then
-            log :info, "Deleted stale key from #{owner}"
-            return true
-          end
-        end
-      end # watch
-      # Not stale
-      return false
+    def release_lock( my_owner = owner )
+      !!redis.eval_and_cache(RELEASE_SCRIPT, keys: [key], argv: [my_owner])
     end
 
     # Calls block until it returns true or times out.
@@ -189,27 +133,6 @@ class Redis
       end
     end
 
-    def with_watch( *args, &block )
-      # Note: watch() gets cleared by a multi() but it's safe to call unwatch() anyway.
-      redis.watch( *args )
-      begin
-        block.call
-      ensure
-        redis.unwatch
-      end
-    end
-
-    # @returns true if the lock exists and is owned by the given owner
-    def is_locked?( owner, expiration, now = Time.now.to_i )
-      owner == oval && ! is_deleteable?( owner, expiration, now )
-    end
-
-    # @returns true if this is a broken or expired lock
-    def is_deleteable?( owner, expiration, now = Time.now.to_i )
-      expiration = expiration.to_i
-      ( owner || expiration > 0 ) && ( ! owner || expiration < now )
-    end
-
     def log( level, *messages )
       if logger then
         logger.send(level) { "[#{Time.now.strftime "%Y%m%d%H%M%S"} #{oval}] #{messages.join(' ')}" }
@@ -225,7 +148,6 @@ class Redis
     def self.config
       @@config
     end
-
   end # Lock
 
   # Convenience methods
@@ -245,4 +167,14 @@ class Redis
     Redis::Lock.new( self, key ).unlock
   end
 
+  def eval_and_cache( script, options = {} )
+    @script_cache ||= {}
+    if @script_cache.include?(script)
+      evalsha(@script_cache[script], keys: options[:keys], argv: options[:argv])
+    else
+      result = eval(script, keys: options[:keys], argv: options[:argv])
+      @script_cache = Digest::SHA1.hexdigest(script)
+      result
+    end
+  end
 end # Redis
