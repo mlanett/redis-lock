@@ -1,3 +1,4 @@
+require "ostruct"
 require "redis"
 require "redis-lock/version"
 
@@ -7,6 +8,10 @@ class Redis
 
     class LockNotAcquired < StandardError
     end
+
+    @@config = OpenStruct.new(
+      default_timeout: 10
+    )
 
     attr_reader :redis
     attr_reader :key
@@ -36,7 +41,8 @@ class Redis
     end
 
     # @param acquisition_timeout defaults to 10 seconds and can be used to determine how long to wait for a lock.
-    def lock( acquisition_timeout = 10, &block )
+    def lock( acquisition_timeout = nil, &block )
+      acquisition_timeout = @@config.default_timeout if acquisition_timeout.nil?
       do_lock_with_timeout(acquisition_timeout) or raise LockNotAcquired.new(key)
       if block then
         begin
@@ -214,6 +220,10 @@ class Redis
     def check_keys( set, *keys )
       extra = set.keys - keys
       raise "Unknown Option #{extra.first}" if extra.size > 0
+    end
+
+    def self.config
+      @@config
     end
 
   end # Lock

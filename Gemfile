@@ -7,7 +7,7 @@ group :development do
   gem "guard"
   gem "guard-rspec"
   gem "rb-fsevent"      # for guard
-  gem "rspec"
+  gem "rspec", "~> 3.0.0"
 end
 
 group :test do

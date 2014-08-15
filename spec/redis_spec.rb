@@ -6,8 +6,8 @@ describe Redis, redis: true do
 
   it "can do a multi setnx" do
     redis.mapped_msetnx "one" => "uno", "two" => "dos"
-    redis.get("one").should eq("uno")
-    redis.get("two").should eq("dos")
+    expect(redis.get("one")).to eq("uno")
+    expect(redis.get("two")).to eq("dos")
   end
 
   it "can delete multiple items" do
@@ -17,9 +17,9 @@ describe Redis, redis: true do
       multi.del "one"
       multi.del "two"
     end
-    x.should eq( [1,1] )
-    redis.get("one").should be_nil
-    redis.get("two").should be_nil
+    expect(x).to eq( [1,1] )
+    expect(redis.get("one")).to be_nil
+    expect(redis.get("two")).to be_nil
   end
 
   it "can detect multi success" do
@@ -28,7 +28,7 @@ describe Redis, redis: true do
       x = redis.multi do |multi|
         multi.del "one"
       end
-      x.should eq([1])
+      expect(x).to eq([1])
     end
   end
 
@@ -39,7 +39,7 @@ describe Redis, redis: true do
         multi.del "one"
         other.set "one", "ichi"
       end
-      x.should be_nil
+      expect(x).to be_nil
     end
   end
 
