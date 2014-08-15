@@ -1,3 +1,4 @@
+require "digest/sha1"
 require "ostruct"
 require "redis"
 require "redis-lock/version"
@@ -26,23 +27,26 @@ class Redis
     attr_accessor :logger
 
     HOST = `hostname`.strip
+
     RELEASE_SCRIPT = <<EOS
-if redis.call("get",KEYS[1]) == ARGV[1]
+if redis.call("GET", KEYS[1]) == ARGV[1]
 then
-    return redis.call("del",KEYS[1])
+    return redis.call("DEL", KEYS[1])
 else
     return 0
 end
 EOS
+    RELEASE_SCRIPT_HASH = Digest::SHA1.hexdigest(RELEASE_SCRIPT)
 
     EXTEND_SCRIPT = <<EOS
-if redis.call("get",KEYS[1]) == ARGV[1]
+if redis.call("GET", KEYS[1]) == ARGV[1]
 then
-    return redis.call("expire",KEYS[1],tonumber(ARGV[2]))
+    return redis.call("EXPIRE", KEYS[1], tonumber(ARGV[2]))
 else
     return 0
 end
 EOS
+    EXTEND_SCRIPT_HASH = Digest::SHA1.hexdigest(EXTEND_SCRIPT)
 
     # @param redis is a Redis instance
     # @param key is a unique string identifying the object to lock, e.g. "user-1"
@@ -106,14 +110,22 @@ EOS
     end
 
     def do_extend( new_life, my_owner = owner )
-      !!redis.eval_and_cache(
-        EXTEND_SCRIPT, keys: [key], argv: [my_owner, new_life])
+      begin
+        redis.evalsha(
+          EXTEND_SCRIPT_HASH, keys: [key], argv: [my_owner, new_life])
+      rescue Redis::CommandError => e
+        redis.eval(EXTEND_SCRIPT, keys: [key], argv: [my_owner, new_life])
+      end
     end
 
     # Only actually deletes it if we own it.
     # There may be strange cases where we fail to delete it, in which case expiration will solve the problem.
     def release_lock( my_owner = owner )
-      !!redis.eval_and_cache(RELEASE_SCRIPT, keys: [key], argv: [my_owner])
+      begin
+        redis.evalsha(RELEASE_SCRIPT_HASH, keys: [key], argv: [my_owner])
+      rescue Redis::CommandError => e
+        redis.eval(RELEASE_SCRIPT, keys: [key], argv: [my_owner])
+      end
     end
 
     # Calls block until it returns true or times out.
@@ -164,16 +176,5 @@ EOS
 
   def unlock( key )
     Redis::Lock.new( self, key ).unlock
-  end
-
-  def eval_and_cache( script, options = {} )
-    @script_cache ||= {}
-    if @script_cache.include?(script)
-      evalsha(@script_cache[script], keys: options[:keys], argv: options[:argv])
-    else
-      result = eval(script, keys: options[:keys], argv: options[:argv])
-      @script_cache = Digest::SHA1.hexdigest(script)
-      result
-    end
   end
 end # Redis
