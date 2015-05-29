@@ -1,7 +1,8 @@
 language: ruby
 rvm:
   - 1.9.3
-gemfile:
-  - Gemfile-redis2
-  - Gemfile-redis3
-before_script: "sudo apt-get install -qq redis-server"
+  - 2.0.0
+  - 2.1.6
+  - 2.2.2
+services:
+  - redis-server

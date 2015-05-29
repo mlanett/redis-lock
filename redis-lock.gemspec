@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 require File.expand_path('../lib/redis-lock/version', __FILE__)
 
 Gem::Specification.new do |gem|
@@ -8,12 +7,11 @@ Gem::Specification.new do |gem|
   gem.summary       = %q{Pessimistic locking using Redis}
   gem.homepage      = ""
 
-  gem.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
-  gem.files         = `git ls-files`.split("\n")
-  gem.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
+  gem.files         = Dir.glob("lib/**/*.rb")
+  gem.test_files    = Dir.glob("{test,spec}/**/*.rb")
   gem.name          = "mlanett-redis-lock"
   gem.require_paths = ["lib"]
   gem.version       = Redis::Lock::VERSION
 
-  gem.add_dependency "redis"
+  gem.add_dependency 'redis', '~> 3.0'
 end
