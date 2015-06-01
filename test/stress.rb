@@ -12,7 +12,7 @@ options = OpenStruct.new({
   keys:  5
 })
 
-TEST_REDIS = { url: "redis://127.0.0.1:6379/1" }
+TEST_REDIS = { url: ENV['REDIS_URL'] || "redis://127.0.0.1:6379/1" }
 
 OptionParser.new do |opts|
   opts.banner = "Usage: #{__FILE__} --forks F --tries T --sleep S"
