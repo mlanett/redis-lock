@@ -67,7 +67,7 @@ The code which cleans the stale lock must not interfere with a different owner a
 
 ## Contributors
 
-Alexander Lang (langalex), Jonathan Hyman (jonhyman), Jamie Cobbett (jamiecobbett), and Ravil Bayramgalin (brainopia) have contributed to Redis Lock.
+Alexander Lang (langalex), Jonathan Hyman (jonhyman), Jamie Cobbett (jamiecobbett), Ravil Bayramgalin (brainopia), and Tom Mornini (tmornini) have contributed to Redis Lock.
 
 ## Contributing
 
