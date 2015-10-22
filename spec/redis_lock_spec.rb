@@ -136,10 +136,17 @@ describe Redis::Lock, redis: true do
     # We leave [ present, present ] to be unspecified.
   end
 
-  example "How to get a lock using the helper." do
+  example "How to get a lock using the helper when passing a block" do
     redis.lock "mykey", life: 10, acquire: 1 do |lock|
       lock.extend_life 10
-    end
+      :return_value_of_block
+    end.should eql(:return_value_of_block)
+  end
+
+  example "How to get a lock using the helper when not passing a block" do
+    lock = redis.lock "mykey", life: 10, acquire: 1
+    lock.should be_an_instance_of(Redis::Lock)
+    lock.unlock
   end
 
 end
