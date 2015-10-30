@@ -231,7 +231,12 @@ class Redis
 
     lock = Redis::Lock.new self, key, options
 
-    block_given? ? lock.lock(acquire, &block) : lock
+    if block_given?
+      lock.lock(acquire, &block)
+    else
+      lock.lock(acquire)
+      lock
+    end
   end
 
   def unlock( key )
