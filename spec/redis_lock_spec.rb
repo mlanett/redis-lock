@@ -137,15 +137,22 @@ describe Redis::Lock, redis: true do
   end
 
   example "How to get a lock using the helper when passing a block" do
-    redis.lock "mykey", life: 10, acquire: 1 do |lock|
-      lock.extend_life 10
+    redis.lock his do |lock|
+      lock.should be_an_instance_of(Redis::Lock)
       :return_value_of_block
     end.should eql(:return_value_of_block)
   end
 
   example "How to get a lock using the helper when not passing a block" do
-    lock = redis.lock "mykey", life: 10, acquire: 1
+    lock = redis.lock his
     lock.should be_an_instance_of(Redis::Lock)
+
+    begin
+      lock.lock
+    rescue Redis::Lock::LockNotAcquired => e
+      e
+    end.should be_an_instance_of(Redis::Lock::LockNotAcquired)
+
     lock.unlock
   end
 
