@@ -45,6 +45,7 @@ This gem adds `lock()` and `unlock()` to Redis instances.
 `lock()` takes a block and is safer than using `lock()` and `unlock()` separately.
 `lock()` takes a key and lifetime and optionally an acquisition timeout (defaulting to 10 seconds).
 
+    redis = ::Redis.connect
     redis.lock("test") { |lock| do_something }
 
     redis.lock("test", life: 2*60, acquire: 2) do |lock|
