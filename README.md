@@ -41,7 +41,8 @@ The acquisition timeout is set via the :acquire option to Redis#lock or passed d
 
 ## Usage
 
-This gem adds `lock()` and `unlock()` to Redis instances.
+This gem adds `lock()`, `locked?()` and `unlock()` to Redis instances.
+
 `lock()` takes a block and is safer than using `lock()` and `unlock()` separately.
 `lock()` takes a key and lifetime and optionally an acquisition timeout (defaulting to 10 seconds).
 
@@ -53,6 +54,15 @@ This gem adds `lock()` and `unlock()` to Redis instances.
         do_something(entry)
         lock.extend_life(60)
       end
+    end
+
+`locked?()` checks if lock is already acquired. It takes `key` argument, which you have used with `lock()` function earlier.
+
+    redis = ::Redis.connect
+    redis.lock("test") { |lock| do_something }
+
+    if redis.locked?("test")
+      puts "work in progress"
     end
 
 ## Goals

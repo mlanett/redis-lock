@@ -239,6 +239,13 @@ class Redis
     end
   end
 
+  # Checks if lock is already acquired
+  #
+  # @param key is a unique string identifying the object to lock, e.g. "user-1"
+  def locked?( key )
+    Redis::Lock.new( self, key ).locked?
+  end
+
   def unlock( key )
     Redis::Lock.new( self, key ).unlock
   end
