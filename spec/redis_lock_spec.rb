@@ -1,4 +1,5 @@
 require "helper"
+require "logger"
 
 describe Redis::Lock, redis: true do
 
@@ -69,7 +70,7 @@ describe Redis::Lock, redis: true do
   end
 
   it "can acquire a lock" do
-    hers.do_lock.should be_true
+    hers.do_lock.should be_truthy
   end
 
   it "can release a lock" do
@@ -77,14 +78,14 @@ describe Redis::Lock, redis: true do
   end
 
   it "can use a timeout" do
-    hers.with_timeout(1) { true }.should be_true
-    hers.with_timeout(1) { false }.should be_false
+    hers.with_timeout(1) { true }.should be_truthy
+    hers.with_timeout(1) { false }.should be_falsy
     # a few attempts are OK
     results = [ false, false, true ]
-    hers.with_timeout(1) { results.shift }.should be_true
+    hers.with_timeout(1) { results.shift }.should be_truthy
     # this is too many attemps
     results = [ false, false, false, false, false, false, false, false, false, false, true ]
-    hers.with_timeout(1) { results.shift }.should be_false
+    hers.with_timeout(1) { results.shift }.should be_falsy
   end
 
   it "does not take too long to time out" do
@@ -110,28 +111,28 @@ describe Redis::Lock, redis: true do
   end
 
   it "can determine if it is locked" do
-    hers.is_locked?( non, nil,    present ).should be_false
-    hers.is_locked?( non, future, present ).should be_false
-    hers.is_locked?( non, past,   present ).should be_false
-    hers.is_locked?( her, nil,    present ).should be_false
-    hers.is_locked?( her, future, present ).should be_true  # the only valid case
-    hers.is_locked?( her, past,   present ).should be_false
-    hers.is_locked?( him, nil,    present ).should be_false
-    hers.is_locked?( him, future, present ).should be_false
-    hers.is_locked?( him, past,   present ).should be_false
+    hers.is_locked?( non, nil,    present ).should be_falsy
+    hers.is_locked?( non, future, present ).should be_falsy
+    hers.is_locked?( non, past,   present ).should be_falsy
+    hers.is_locked?( her, nil,    present ).should be_falsy
+    hers.is_locked?( her, future, present ).should be_truthy  # the only valid case
+    hers.is_locked?( her, past,   present ).should be_falsy
+    hers.is_locked?( him, nil,    present ).should be_falsy
+    hers.is_locked?( him, future, present ).should be_falsy
+    hers.is_locked?( him, past,   present ).should be_falsy
     # We leave [ present, present ] to be unspecified.
   end
 
   it "can detect broken or expired locks" do
-    hers.is_deleteable?( non, nil,    present ).should be_false # no lock => not expired
+    hers.is_deleteable?( non, nil,    present ).should be_falsy # no lock => not expired
 
-    hers.is_deleteable?( non, future, present ).should be_true  # broken => expired
-    hers.is_deleteable?( non, past,   present ).should be_true  # broken => expired
-    hers.is_deleteable?( her, nil,    present ).should be_true  # broken => expired
+    hers.is_deleteable?( non, future, present ).should be_truthy  # broken => expired
+    hers.is_deleteable?( non, past,   present ).should be_truthy  # broken => expired
+    hers.is_deleteable?( her, nil,    present ).should be_truthy  # broken => expired
 
-    hers.is_deleteable?( her, future, present ).should be_false # current; not expired
+    hers.is_deleteable?( her, future, present ).should be_falsy # current; not expired
 
-    hers.is_deleteable?( her, past,   present ).should be_true  # expired
+    hers.is_deleteable?( her, past,   present ).should be_truthy  # expired
 
     # We leave [ present, present ] to be unspecified.
   end
