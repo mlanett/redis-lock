@@ -242,8 +242,9 @@ class Redis
   # Checks if lock is already acquired
   #
   # @param key is a unique string identifying the object to lock, e.g. "user-1"
-  def locked?( key )
-    Redis::Lock.new( self, key ).locked?
+  # @param options[:owner] may be set, but defaults to HOSTNAME:PID
+  def locked?( key, options = {} )
+    Redis::Lock.new( self, key, options ).locked?
   end
 
   def unlock( key )
