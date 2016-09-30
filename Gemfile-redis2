@@ -1,9 +1,0 @@
-source 'https://rubygems.org'
-
-# Specify your gem's dependencies in redis-lock.gemspec
-gemspec
-
-gem 'redis', '~>2.0'
-gem "simplecov", require: false
-gem 'rspec'
-gem 'rake'

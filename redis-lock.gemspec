@@ -15,5 +15,5 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version       = Redis::Lock::VERSION
 
-  gem.add_dependency "redis"
+  gem.add_dependency "redis", ">= 3.0"
 end

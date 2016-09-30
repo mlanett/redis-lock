@@ -6,10 +6,11 @@ gemspec
 group :development do
   gem "guard"
   gem "guard-rspec"
+  gem "rake"
   gem "rb-fsevent"      # for guard
-  gem "rspec"
 end
 
 group :test do
+  gem "rspec"
   gem "simplecov", require: false
 end

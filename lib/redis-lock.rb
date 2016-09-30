@@ -110,7 +110,7 @@ class Redis
       # The transaction fails if the watched variable changed
       # Use my_owner = oval to make testing easier.
       new_xval = Time.now.to_i + new_life
-      with_watch( okey  ) do
+      redis.watch( okey  ) do
         owner = redis.get( okey )
         if owner == my_owner then
           result = redis.multi do |multi|
@@ -121,6 +121,8 @@ class Redis
             @xval = new_xval
             return true
           end
+        else
+          redis.unwatch
         end
       end
       return false
@@ -130,13 +132,15 @@ class Redis
     # There may be strange cases where we fail to delete it, in which case expiration will solve the problem.
     def release_lock( my_owner = oval )
       # Use my_owner = oval to make testing easier.
-      with_watch( okey, xkey ) do
+      redis.watch( okey, xkey ) do
         owner = redis.get( okey )
         if owner == my_owner then
           redis.multi do |multi|
             multi.del( okey )
             multi.del( xkey )
           end
+        else
+          redis.unwatch
         end
       end
     end
@@ -148,7 +152,7 @@ class Redis
       # multi() will fail if keys have changed after watch()
       # Thus, we snapshot consistency at the time of watch()
       # Note: inside a watch() we get one and only one multi()
-      with_watch( okey, xkey ) do
+      redis.watch( okey, xkey ) do
         owner  = redis.get( okey )
         expire = redis.get( xkey )
         if is_deleteable?( owner, expire, now ) then
@@ -161,6 +165,8 @@ class Redis
             log :info, "Deleted stale key from #{owner}"
             return true
           end
+        else
+          redis.unwatch
         end
       end # watch
       # Not stale
@@ -180,16 +186,6 @@ class Redis
         log :debug, "Timeout for #{@key}" and return false if Time.now + sleepy > expire
         sleep(sleepy)
         # might like a different strategy, but general goal is not use 100% cpu while contending for a lock.
-      end
-    end
-
-    def with_watch( *args, &block )
-      # Note: watch() gets cleared by a multi() but it's safe to call unwatch() anyway.
-      redis.watch( *args )
-      begin
-        block.call
-      ensure
-        redis.unwatch
       end
     end
 
