@@ -110,7 +110,7 @@ class Redis
       # The transaction fails if the watched variable changed
       # Use my_owner = oval to make testing easier.
       new_xval = Time.now.to_i + new_life
-      with_watch( okey  ) do
+      with_watch( okey ) do
         owner = redis.get( okey )
         if owner == my_owner then
           result = redis.multi do |multi|
