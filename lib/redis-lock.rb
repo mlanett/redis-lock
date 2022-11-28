@@ -122,7 +122,7 @@ class Redis
             multi.set( xkey, new_xval, ex: expire_in )
             multi.expire(okey, expire_in)
           end
-          if result && result.size == 1 then
+          if result && result.size == 2 then
             log :debug, "do_extend() success"
             @xval = new_xval
             return true
