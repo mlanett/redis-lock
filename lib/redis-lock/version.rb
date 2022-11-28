@@ -1,5 +1,5 @@
 class Redis
   class Lock
-    VERSION = "0.2.8.3"
+    VERSION = "0.2.8"
   end
 end
