@@ -91,7 +91,7 @@ class Redis
         redis.multi do |multi|
           result = multi.mapped_msetnx okey => oval, xkey => new_xval
 
-          if [1, true].include?(result) then
+          if [1, true].include?(result.value) then
             log :debug, "do_lock() success"
             expire_time = life + 60
             multi.expire(okey, expire_time)
