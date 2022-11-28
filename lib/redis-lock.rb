@@ -117,8 +117,10 @@ class Redis
       with_watch( okey  ) do
         owner = redis.get( okey )
         if owner == my_owner then
+          expire_in = new_life + 60
           result = redis.multi do |multi|
-            multi.set( xkey, new_xval )
+            multi.set( xkey, new_xval, ex: expire_in )
+            multi.expire(okey, expire_in)
           end
           if result && result.size == 1 then
             log :debug, "do_extend() success"
