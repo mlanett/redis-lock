@@ -88,25 +88,23 @@ class Redis
 
       loop do
         new_xval = Time.now.to_i + life
-        with_watch(okey, xkey) do
-          result = redis.mapped_msetnx okey => oval, xkey => new_xval
+        result = redis.mapped_msetnx okey => oval, xkey => new_xval
 
-          if [1, true].include?(result) then
-            log :debug, "do_lock() success"
-            expire_time = life + 60
-            redis.multi do |multi|
-              multi.expire(okey, expire_time)
-              multi.expire(xkey, expire_time)
-            end
-            @xval = new_xval
-            return true
-          else
-            log :debug, "do_lock() failed"
-            # consider the possibility that this lock is stale
-            tries -= 1
-            next if tries > 0 && stale_key?
-            return false
+        if [1, true].include?(result) then
+          log :debug, "do_lock() success"
+          expire_time = life + 60
+          redis.multi do |multi|
+            multi.expire(okey, expire_time)
+            multi.expire(xkey, expire_time)
           end
+          @xval = new_xval
+          return true
+        else
+          log :debug, "do_lock() failed"
+          # consider the possibility that this lock is stale
+          tries -= 1
+          next if tries > 0 && stale_key?
+          return false
         end
       end
     end
