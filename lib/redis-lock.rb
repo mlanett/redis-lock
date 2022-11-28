@@ -19,6 +19,8 @@ class Redis
 
     HOST = `hostname`.strip
 
+    LOCK_EXPIRE_GRACE_PERIOD = 60
+
     # @param redis is a Redis instance
     # @param key is a unique string identifying the object to lock, e.g. "user-1"
     # @param options[:life] should be set, but defaults to 1 minute
@@ -92,10 +94,10 @@ class Redis
 
         if [1, true].include?(result) then
           log :debug, "do_lock() success"
-          expire_time = life + 60
+          expire_in = life + LOCK_EXPIRE_GRACE_PERIOD
           redis.multi do |multi|
-            multi.expire(okey, expire_time)
-            multi.expire(xkey, expire_time)
+            multi.expire(okey, expire_in)
+            multi.expire(xkey, expire_in)
           end
           @xval = new_xval
           return true
@@ -117,7 +119,7 @@ class Redis
       with_watch( okey  ) do
         owner = redis.get( okey )
         if owner == my_owner then
-          expire_in = new_life + 60
+          expire_in = new_life + LOCK_EXPIRE_GRACE_PERIOD
           result = redis.multi do |multi|
             multi.set( xkey, new_xval, ex: expire_in )
             multi.expire(okey, expire_in)
